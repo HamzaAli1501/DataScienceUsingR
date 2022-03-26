@@ -1,0 +1,148 @@
+---
+title: "181058_DSLab_MID"
+output:
+  word_document: default
+  pdf_document: default
+  html_document: default
+---
+
+>Task 01
+
+Create a Vector and save 6 values 1 ,2, 3,4,5,6 your id digits, Assign names to each instance and display length and type of vector.
+
+```{r}
+ID <- c(1,8,1,0,5,8)
+names(ID) <- c("one","eight","one", "zero", "five","eight")
+# Can also do it like 
+# id <- c("One"=1,"Eight"=8,"One"=1, "Zero"=0, "Five"=5,"Eight"=8)
+print(ID)
+paste("LENGTH -> ", length(ID)) #alternative for concatenating
+paste("Type -> ", typeof(ID)) 
+```
+
+>Task 02
+
+Create a matrix "YourName" and store 9 values row wise with 3 rows and name the row and column names. Multiply Complete Matrix with 100 and Display the output.
+
+```{r}
+HamzaAli <- matrix(1:9, nrow = 3, byrow=TRUE)
+rownames(HamzaAli) <- c("R1","R2","R3")
+colnames(HamzaAli) <- c("C1","C2","C3")
+new_mat <- HamzaAli * 100
+print(HamzaAli)
+print(new_mat)
+```
+
+>Task 03
+
+Using Provided Dataset
+
+```{r}
+df <- read.csv("DataSet_MidExam_C.csv")
+print("STRUCTURE")
+print(str(df))
+print("SUMMARY")
+print(summary(df))
+```
+#### Str vs Summary
+According to the Output of Str and Summary, 
+
+1. Str provides the following:
+  +   The total number of rows and columns, i.e. 1216 rows(objects) and 7 columns(variables)
+  +   "$" gives description of each column(their factor(unique values) and int values itselfs)
+  
+2. As for summary, 
+  +   It gives summary of head, 6 rows and others
+  +   Each column would gives total number of distinct rows, for example, Barbados has 44 rows in Country...territory
+  +   For Integer, it would gives out Min, max, media, median, number of NA's and basic math functions
+  +   In short, it would give the summary of the dataset to give bried description of the provided datasets
+  
+#### Finding the Categorical and Numerical attributes 
+  *   Any int value gives numerical attributes
+  *   Any factor of limited values (M/F, Confirmed/Suspected) gives Categorical attribues
+Now, looking at summary, we can draw following conclusion
+  1.  **Country...territory**, **Measure.Names**, **Measure.Values**, **Suspected.cases** has distinct values(factor), so it's categorical attributes. **Year.of.Data** gives 2 values (2015,2016), so it can be also categorical 
+  2.  **Report.Epi.Week**, **Year.of.Date**, **Laboratory.Confirmed.cases**, **Suspected.cases** are all numerical attributes
+  
+```{r}
+df <- read.csv("DataSet_MidExam_C.csv")
+plot(main = "Categorical PLOT", df$Country...territory, df$Measure.Names)
+plot(main = "Numerical Plot", df$Report.Epi.Week, df$Year.of.Date)
+plot(main = "2X", (df$Report.Epi.Week)*2, (df$Year.of.Date)*2, xlab = "X", ylab="Y")
+hist(df$Report.Epi.Week,main = "Histogram of Report EPI WEEK", col="green", breaks = 10)
+```
+
+
+
+>Task 04
+
+#### Top & Last5 entries of Provided Dataset
+```{r}
+print("Top 5 values")
+print(head(df, n = 5))
+print("Last 5 values")
+print(tail(df, n = 5))
+print("Summary")
+print(summary(df))
+print("5 Line Summary")
+fivenum(df$Report.Epi.Week)
+fivenum(df$Year.of.Date)
+fivenum(df$Laboratory.confirmed.cases)
+```
+#### Difference Between Summary and 5Num summary
+
+1. As described by its name, summary gives detailed view of the datasets, even __factors__ and __string__
+2. Factor only works with __numerical attributes__ as it gives provides 
+* Minimum
+* First Quartile
+* Median
+* Third Quartile
+* Maximum
+
+
+#### BoxPlot and Outliers
+
+```{r}
+print("BoxPlot")
+boxplot(df$Report.Epi.Week)
+```
+ According to the Boxplot, 
+ * Lowest line gives min values = 1
+ * 2nd lower will gives 1st quartile = 5
+ * bolded line is the median of column = 43 
+ * Above that gives third quartilse = 48 
+ * Top values give Maximun values = 52
+ All the values below minimum and above maximum are referred as outliers 
+ (1 > Outliers > 52)
+ 
+ >Task 05
+
+#### Encode Categorical to Numerical
+```{r}
+df <- read.csv("DataSet_MidExam_C.csv")
+df$Country...territory <- factor(df$Country...territory, labels= 1:31)
+df$Measure.Names <- factor(df$Measure.Names, labels = c(1,2))
+df$Measure.Values <- factor(df$Measure.Values, labels = 1:113)
+df$Suspected.cases <- factor(df$Suspected.cases, labels = 1:88)
+```
+
+#### Missing values with mean
+According to summary, we have NA at Report.Epi.Week
+```{r}
+df$Report.Epi.Week <- ifelse(is.na(df$Report.Epi.Week),
+                             ave(df$Report.Epi.Week, FUN = function(x) mean(x, na.rm = TRUE)), df$Report.Epi.Week)
+#print(df$Report.Epi.Week)
+#for conforming
+#is.na(df$Report.Epi.Week)
+```
+#### Split to 80/20
+```{r}
+library(caTools)
+set.seed(123)
+split = sample.split(df$Measure.Values, SplitRatio = 0.8)
+trainingset <- subset(df, split == TRUE)
+testset <- subset(df, split == FALSE)
+paste("Training Set", dim(trainingset)) 
+paste("Test set", dim(testset))
+
+```
