@@ -1,0 +1,67 @@
+---
+title: "181058_DSLab11"
+---
+# Classification
+
+Importing the file
+```{r, message=FALSE, warning=FALSE} 
+# message warning False for any output while importing library
+
+library(caret)
+heart = read.csv('heart.csv')
+set.seed(12) # random value for seed
+```
+> Encoding output
+
+Now we would be encoding output via factoring
+
+```{r}
+heart$output = as.factor(heart$output)
+```
+> Splitting data to training and test 
+
+```{r, warning=FALSE, message=FALSE}
+library(caTools)
+set.seed(123)
+split = sample.split(heart$output, SplitRatio = 0.8)
+trainingset <- subset(heart, split == TRUE)
+testset <- subset(heart, split == FALSE)
+paste("Training Set", dim(trainingset)) 
+paste("Test set", dim(testset))
+```
+> Setting cross-validation
+
+```{r}
+trControl <- trainControl(method = "repeatedcv", number = 10, repeats = 10)
+```
+
+> Training model
+
+```{r}
+
+model <- train(output ~ ., method='knn', data = trainingset, metric='Accuracy', trControl = trControl)
+```
+
+> Evaluating model
+
+```{r}
+pred <- predict(model, testset)
+
+factor_pred <- as.factor(pred)
+factor_truth <- as.factor(testset$output)
+```
+
+Now, calculating precision
+```{r}
+precision <- posPredValue(factor_truth, factor_pred)
+#recall
+recall <- sensitivity(factor_truth, factor_pred)
+```
+
+> Applying confusion Matrix
+```{r}
+cm <- confusionMatrix(pred, testset$output)
+Accuracy <- cm$overall[1]
+confusion_matrix <- cm$table
+confusion_matrix
+```

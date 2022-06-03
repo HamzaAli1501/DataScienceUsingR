@@ -1,0 +1,207 @@
+---
+title: "181058 DSLab Final"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+> Task 01
+
+>> Reading the dataset
+
+importing dataset into R
+
+```{r}
+df = read.csv('regression_Data.csv')
+head(df)
+```
+
+ checking for its structure to find nore information about the given dataset
+
+```{r}
+str(df)
+```
+From the output, we can see that we have 9568 observations/ rows for 5 variables/column. We can also see that all are of types _num_
+
+>> Cleaning the data
+
+For cleaning the data, we need to
+
+1. Finding outliers 
+2. Finding null values 
+3. Finding categorical values
+
+>> Finding outliers
+
+Best method is to use boxplot, values outside the plot are outliers
+```{r fig.width=8, fig.height=8}
+boxplot(df)
+```
+From the figure, we don't seem to find any outlier, trying again, mathematically.
+1. We could find  mean and standard deviation, from where we may find Q1 and Q3, Q2 is mean
+Expression for outliers will be 
+_Quartile = 1.5(Q3-Q1)_
+Values below mean and above max would be classified as outliers which should be removed.
+```{r}
+quartiles <- quantile(df$AT, probs=c(.25, .75), na.rm = FALSE)
+IQR <- IQR(df$AT)
+Lower <- quartiles[1] - 1.5*IQR
+Upper <- quartiles[2] + 1.5*IQR 
+#finding outlier
+df$AT[which(df$AT < Lower | df$AT > Upper)]
+
+
+quartiles <- quantile(df$V, probs=c(.25, .75), na.rm = FALSE)
+IQR <- IQR(df$V)
+Lower <- quartiles[1] - 1.5*IQR
+Upper <- quartiles[2] + 1.5*IQR 
+#finding outlier
+df$V[which(df$V < Lower | df$V > Upper)]
+
+quartiles <- quantile(df$AP, probs=c(.25, .75), na.rm = FALSE)
+IQR <- IQR(df$AP)
+Lower <- quartiles[1] - 1.5*IQR
+Upper <- quartiles[2] + 1.5*IQR 
+#finding outlier
+df$AP[which(df$AP < Lower | df$AP > Upper)]
+
+quartiles <- quantile(df$RH, probs=c(.25, .75), na.rm = FALSE)
+IQR <- IQR(df$RH)
+Lower <- quartiles[1] - 1.5*IQR
+Upper <- quartiles[2] + 1.5*IQR
+#finding outlier
+df$RH[which(df$RH < Lower | df$RH > Upper)]
+
+
+quartiles <- quantile(df$PE, probs=c(.25, .75), na.rm = FALSE)
+IQR <- IQR(df$PE)
+Lower <- quartiles[1] - 1.5*IQR
+Upper <- quartiles[2] + 1.5*IQR 
+#finding outlier
+df$PE[which(df$PE < Lower | df$PE > Upper)]
+
+```
+
+So, we have outliers in AP and RH
+Removing them.
+```{r}
+without_outlier <- subset(df, df$AP > Lower & df$AP < Upper)
+without_outlier <- subset(df, df$RH > Lower & df$RH < Upper)
+
+dim(without_outlier)
+
+outliers <- boxplot(df, plot = FALSE)$out
+data_no_outlier <- df[-which(df %in% outliers)] 
+dim(data_no_outlier)
+length(data_no_outlier)
+
+```
+
+> Task 02 Linear Regression 
+
+>> Plotting dependant and independant variables
+
+Finding corelation between all variables
+```{r}
+#installing corrplot
+library(corrplot)
+corr <- sapply(df, is.numeric)
+corr
+
+cor.data <- cor(df[, corr])
+cor.data
+
+corrplot(cor.data, method='color')
+
+```
+
+>> Splitting the data
+```{r}
+#Splitting the data
+library(caTools)
+set.seed(2)
+split <- sample.split(df, SplitRatio = 0.8)
+train <- subset(df, split == 'TRUE')
+test <- subset(df, split == 'FALSE')
+
+dim(train)
+dim(test)
+```
+>> Linear Regression, plotting and summary
+```{r}
+#making a model
+model <- lm(PE ~., data = train)
+summary(model)
+pred <- predict(model, test)
+head(pred)
+
+res <-residuals(model)
+res <- as.data.frame(res)
+head(res)
+```
+```{r, message=FALSE, warning=FALSE}
+#Compairing with actual values
+results <- cbind(pred, df$PE)
+colnames(results) <- c('Predicted', 'Real')
+results <- as.data.frame(results)
+head(results)
+
+plot(df$PE, type= 'l')
+
+par(mfrow=c(2,2))
+plot(model)
+mtext("Linear Model",                  
+      side = 3,
+      line = - 1,
+      outer = TRUE)
+summary(head((model)))
+
+```
+
+>> Polynomial regression with degree 2 and 3 and summary 
+
+```{r, message=FALSE, warning=FALSE}
+DegreeModel2 <- lm(df$PE ~ poly(df$AP, 2), data = train)
+par(mfrow=c(2,2))
+plot(DegreeModel2)
+mtext("Degree Model 2",                  
+      side = 3,
+      line = - 1,
+      outer = TRUE)
+
+summary(head((DegreeModel2)))
+
+DegreeModel3 <- lm(df$PE ~ poly(df$AP, 2), data = train)
+par(mfrow=c(2,2))
+plot(DegreeModel3)
+mtext("Degree Model 3",                  
+      side = 3,
+      line = - 1,
+      outer = TRUE)
+
+summary(head((DegreeModel3)))
+
+```
+
+>> Predicting the result using trained data
+
+```{r, message=FALSE, warning=FALSE}
+predicted_result <- predict(model, test)
+
+res <- residuals(model)
+res <- as.data.frame(res)
+
+final_res <- cbind(predicted_result, df$PE)
+
+colnames(final_res) <- c("Predicted","real")
+
+final_res <- as.data.frame(final_res)
+
+#plotting them
+plot(df$PE, type = 'l', lty = 1.8, col = 'red')
+lines(predicted_result, col='green')
+
+#checking accuracy
+rmse <- sqrt(mean(predicted_result - df$PE)^2)
+paste("Accuracy is ", rmse)
+```

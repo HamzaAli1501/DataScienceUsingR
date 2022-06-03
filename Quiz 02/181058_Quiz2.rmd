@@ -1,0 +1,45 @@
+---
+title: "181058_DSLab_Quiz"
+---
+# Question 1
+
+Do data(mtcars) from the datasets package and fit the regression model with mpg as
+the outcome and weight as the predictor. Give the slope coefficient.
+
+> Importing Data mtcars
+```{r}
+data(mtcars)
+head(mtcars)
+
+```
+
+Now we need mpg as y_outcome, and weight as x_predict
+```{r}
+y_outcome <- mtcars$mpg
+x_pred <- mtcars$wt
+
+#Linear Model
+model <-  lm(y_outcome ~ x_pred, data = mtcars)
+summary(model)
+coef(model)
+```
+
+# Question 02
+
+Consider the following data set (used above as well). What is the intercept for fitting the
+model with x as the predictor and y as the outcome?
+
+> Inputing values
+
+```{r, message=FALSE, warning=FALSE}
+
+x <- c(0.8, 0.47, 0.51, 0.73, 0.36, 0.58, 0.57, 0.85, 0.44, 0.42)
+y <- c(1.39, 0.72, 1.55, 0.48, 1.19, -1.59, 1.23, -0.65, 1.49, 0.05)
+
+# Creating a linear model
+r_model <- lm(y ~ x)
+r_model
+
+```
+
+

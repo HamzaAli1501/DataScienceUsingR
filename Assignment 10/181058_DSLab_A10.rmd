@@ -1,0 +1,98 @@
+---
+title: "181058_DSLab_Quiz"
+output:
+  html_document: default
+  pdf_document: default
+  word_document: default
+---
+> 1. Loading dataset using read.csv
+
+```{r}
+
+df= read.csv('LungCapData2.csv')
+head(df)
+```
+
+
+> 1.1. Printing the summary of df
+
+```{r}
+summary(df)
+```
+
+> 2. Making a plot
+
+```{r}
+plot(df$LungCap, df$Height, main="LungCap VS Height", xlab="LungCap", ylab="Height")
+```
+>  3. Splitting the data in training and testing data
+
+```{r}
+library(caTools)
+set.seed(123)
+
+split = sample.split(df, SplitRatio = 0.8)
+trainingset <- subset(df, split == TRUE)
+testset <- subset(df, split == FALSE)
+paste("Training Set ->", dim(trainingset))
+paste("Test set ->", dim(testset))
+```
+> 4. Linear Regression on Lungcap vs Age on Training dataset
+
+```{r}
+LungCapVSAgemodel = lm(trainingset$LungCap ~ trainingset$Age)
+LungCapVSAgemodel
+par(mfrow=c(2,2))
+plot(LungCapVSAgemodel)
+mtext("Linear Model",                  
+      side = 3,
+      line = - 1,
+      outer = TRUE)
+paste("Summary of fitted model ->", head(summary(LungCapVSAgemodel)))
+```
+
+> 5. Polynomial Regression with degree 2 and 3
+
+```{r}
+DegreeModel2 <- lm(df$LungCap ~ poly(df$Age, 2), data = trainingset)
+par(mfrow=c(2,2))
+plot(DegreeModel2)
+mtext("Degree Model 2",                  
+      side = 3,
+      line = - 1,
+      outer = TRUE)
+
+
+
+DegreeModel3 <- lm(df$LungCap ~ poly(df$Age, 3), data = trainingset)
+par(mfrow=c(2,2))
+plot(DegreeModel3)
+mtext("Degree Model 3",                  
+      side = 3,
+      line = - 1,
+      outer = TRUE)
+
+```
+
+> Predicting the result using trained data
+
+```{r, message=FALSE, warning=FALSE}
+predicted_result_for_lungVsAge <- predict(LungCapVSAgemodel, testset)
+
+res_LungvsAge <- residuals(LungCapVSAgemodel)
+res_LungvsAge <- as.data.frame(res_LungvsAge)
+
+final_res <- cbind(predicted_result_for_lungVsAge, df$LungCap)
+
+colnames(final_res) <- c("Predicted","real")
+
+final_res <- as.data.frame(final_res)
+
+#plotting them
+plot(df$LungCap, type = 'l', lty = 1.8, col = 'red')
+lines(predicted_result_for_lungVsAge, col='green')
+
+#checking accuracy
+rmse <- sqrt(mean(predicted_result_for_lungVsAge - df$LungCap)^2)
+paste("Accuracy is ", rmse)
+```
